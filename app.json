@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "UangHarianApp",
-    "slug": "UangHarianApp",
+    "name": "Uang Harian App",
+    "slug": "uang-harian",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -13,18 +13,12 @@
     },
     "assetBundlePatterns": ["**/*"],
     "ios": {
-      "supportsTablet": true,
-      "config": {
-        "googleMobileAdsAppId": "ca-app-pub-3940256099942544~1458002511"
-      }
+      "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      },
-      "config": {
-        "googleMobileAdsAppId": "ca-app-pub-3940256099942544~3347511713"
       }
     },
     "web": {
