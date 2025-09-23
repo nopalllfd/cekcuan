@@ -6,16 +6,8 @@ import { useNavigation } from '@react-navigation/native';
 const BalanceCard = ({ balance, initialBalance }) => {
   const navigation = useNavigation();
 
-  // Perhitungan persentase penggunaan saldo
   const usedAmount = initialBalance - balance;
-  const percentageUsed = Math.min(100, Math.max(0, (usedAmount / initialBalance) * 100));
-
-  // Format date as string
-  const dateString = new Date().toLocaleDateString('id-ID', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-  });
+  const percentageUsed = initialBalance > 0 ? Math.min(100, Math.max(0, (usedAmount / initialBalance) * 100)) : 0;
 
   return (
     <LinearGradient
@@ -24,7 +16,7 @@ const BalanceCard = ({ balance, initialBalance }) => {
       end={{ x: 1, y: 1 }}
       style={styles.balanceCard}
     >
-      <Text style={styles.balanceLabel}>Jatah uang anda hari ini</Text>
+      <Text style={styles.balanceLabel}>Sisa Saldo Anda Saat Ini</Text>
       <View style={styles.balanceRow}>
         <Text style={styles.balanceText}>Rp. {balance.toLocaleString('id-ID')}</Text>
       </View>
@@ -40,9 +32,13 @@ const BalanceCard = ({ balance, initialBalance }) => {
         />
       </View>
       {balance >= 0 ? (
-        <Text style={styles.textWhite}>Jatah anda masih tersisa Rp. {balance.toLocaleString('id-ID')}</Text>
+        <Text style={styles.textWhite}>
+          Anda telah menggunakan Rp. {usedAmount.toLocaleString('id-ID')} dari total pemasukan Rp. {initialBalance.toLocaleString('id-ID')}
+        </Text>
       ) : (
-        <Text style={[styles.textWhite, styles.overspentText]}>Jatah anda terlewat Rp. {Math.abs(balance).toLocaleString('id-ID')}</Text>
+        <Text style={[styles.textWhite, styles.overspentText]}>
+          Anda telah mengeluarkan Rp. {Math.abs(usedAmount).toLocaleString('id-ID')} lebih banyak dari total pemasukan Rp. {initialBalance.toLocaleString('id-ID')}
+        </Text>
       )}
     </LinearGradient>
   );
@@ -90,11 +86,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-
   textWhite: {
     color: '#efefefff',
     fontSize: 12,
     marginTop: 5,
+  },
+  overspentText: {
+    color: '#ff8a60ff',
   },
   arrow: {
     color: '#ffffff',

@@ -1,37 +1,55 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, Alert, StatusBar } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import { getTransactions, getCurrentBalance, getCategories, addTransaction, addCategory } from '../services/database';
 import * as Font from 'expo-font';
+import CustomAlert from '../components/common/CustomAlert';
 import BalanceCard from '../components/home/BalanceCard';
-import AddTransactionModal from '../components/transaction/AddTransactionModal';
-import AddCategoryModal from '../components/category/AddCategoryModal';
+import TransactionAndCategoryModal from '../components/transaction/AddTransactionModal'; // Import komponen gabungan
 import UserHeader from '../components/home/UserHeader';
 import AddTransactionButton from '../components/home/AddTransactionButton';
 import TransactionSection from '../components/home/TransactionSection';
+import { getTransactions, getCategories, addTransaction, addCategory, getMonthlyIncome, getMonthlySpending, getMonthlyBudget } from '../services/database';
 
 const HomeScreen = ({ navigation }) => {
   const [balance, setBalance] = useState(0);
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalVisible, setModalVisible] = useState(false);
-  const [isAddCategoryModalVisible, setAddCategoryModalVisible] = useState(false);
   const [categories, setCategories] = useState([]);
-  const [initialBalance, setInitialBalance] = useState(100000);
+  const [initialBalance, setInitialBalance] = useState(0);
   const [fontsLoaded, setFontsLoaded] = useState(false);
+  const [alertVisible, setAlertVisible] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
+  const [alertType, setAlertType] = useState('success');
 
   const fetchData = async () => {
     try {
-      const currentBalance = await getCurrentBalance();
+      const monthlyBudget = await getMonthlyBudget(); // Ambil anggaran bulanan
       const allTransactions = await getTransactions();
-      const spendingTransactions = allTransactions.filter((item) => item.type === 'pengeluaran');
       const allCategories = await getCategories();
 
+      // Hitung total spending dari transaksi
+      const totalSpending = allTransactions.reduce((sum, transaction) => {
+        if (transaction.type.toLowerCase() === 'pengeluaran') {
+          return sum + transaction.amount;
+        }
+        return sum;
+      }, 0);
+
+      // Saldo = Anggaran - Total Pengeluaran
+      const currentBalance = (monthlyBudget || 0) - totalSpending;
+
+      setInitialBalance(monthlyBudget || 0); // Set initial balance ke anggaran bulanan
       setBalance(currentBalance);
-      setTransactions(spendingTransactions);
+      setTransactions(allTransactions);
       setCategories(allCategories);
+
+      // Debug log
+      console.log('Monthly Budget:', monthlyBudget);
+      console.log('Total Spending:', totalSpending);
+      console.log('Current Balance:', currentBalance);
     } catch (error) {
-      console.error('Failed to fetch data:', error);
+      console.error('Gagal memuat data:', error);
       Alert.alert('Error', 'Gagal memuat data. Silakan coba lagi.');
     } finally {
       setLoading(false);
@@ -63,16 +81,26 @@ const HomeScreen = ({ navigation }) => {
     setModalVisible(true);
   };
 
+  const ShowAlert = (message, type) => {
+    setAlertMessage(message);
+    setAlertType(type);
+    setAlertVisible(true);
+  };
+
   const handleSaveTransaction = async (amount, description, type, categoryId, details) => {
     try {
       await addTransaction(amount, description, type, categoryId, null, details);
-      Alert.alert('Sukses', 'Transaksi berhasil dicatat!');
+      ShowAlert('Transaksi berhasil dicatat!', 'success');
       setModalVisible(false);
-      fetchData();
+      await fetchData();
     } catch (error) {
       console.error('Failed to add transaction:', error);
       Alert.alert('Gagal', 'Terjadi kesalahan saat mencatat transaksi.');
     }
+  };
+
+  const navigateToProfile = () => {
+    navigation.navigate('WalletScreen', { onDataUpdated: fetchData });
   };
 
   if (!fontsLoaded || loading) {
@@ -92,7 +120,10 @@ const HomeScreen = ({ navigation }) => {
         barStyle="light-content"
         backgroundColor="#1a1a2e"
       />
-      <UserHeader />
+      <UserHeader
+        onProfilePress={navigateToProfile}
+        onNotificationPress={() => navigation.navigate('NotificationScreen')}
+      />
       <BalanceCard
         balance={balance}
         initialBalance={initialBalance}
@@ -103,29 +134,19 @@ const HomeScreen = ({ navigation }) => {
         navigation={navigation}
         sectionTitleStyle={{ fontFamily: 'Shoika-Regular' }}
       />
-      <AddTransactionModal
+      {/* Menggunakan satu komponen modal saja */}
+      <TransactionAndCategoryModal
         isVisible={isModalVisible}
         onClose={() => setModalVisible(false)}
         onSave={handleSaveTransaction}
         categories={categories}
-        onAddCategoryPress={() => {
-          setModalVisible(false);
-          setTimeout(() => {
-            setAddCategoryModalVisible(true);
-          }, 350);
-        }}
-      />
-      <AddCategoryModal
-        isVisible={isAddCategoryModalVisible}
-        onClose={() => setAddCategoryModalVisible(false)}
-        onSave={addCategory}
-        onReturnToTransaction={() => {
-          setAddCategoryModalVisible(false);
-          setTimeout(() => {
-            setModalVisible(true);
-          }, 350);
-        }}
         fetchData={fetchData}
+      />
+      <CustomAlert
+        message={alertMessage}
+        type={alertType}
+        isVisible={alertVisible}
+        onClose={() => setAlertVisible(false)}
       />
     </View>
   );

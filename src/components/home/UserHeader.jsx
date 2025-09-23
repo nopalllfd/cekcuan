@@ -3,8 +3,9 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
+import { AppNavigator } from '../../navigation/AppNavigator';
 
-const UserHeader = () => {
+const UserHeader = ({ onNotificationPress }) => {
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
 
   useEffect(() => {
@@ -38,7 +39,10 @@ const UserHeader = () => {
           <Text style={styles.timeText}>{`${hour < 10 ? `0${hour}` : hour}:${minute < 10 ? `0${minute}` : minute}:${second < 10 ? `0${second}` : second}`}</Text>
         </View>
       </View>
-      <TouchableOpacity style={styles.notificationButton}>
+      <TouchableOpacity
+        style={styles.notificationButton}
+        onPress={onNotificationPress}
+      >
         <MaterialIcons
           name="notifications"
           size={24}

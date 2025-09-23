@@ -48,7 +48,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     padding: 9,
     borderRadius: 8,
-    backgroundColor: '#663fc1f1',
+    backgroundColor: '#01254aff',
     marginBottom: 10,
   },
   leftContent: {
@@ -58,6 +58,7 @@ const styles = StyleSheet.create({
   },
   textContainer: {
     marginLeft: 15,
+    color: '#009688',
   },
   rightContent: {
     alignItems: 'flex-end',

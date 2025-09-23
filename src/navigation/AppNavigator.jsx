@@ -1,102 +1,146 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { createStackNavigator } from '@react-navigation/stack';
+import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 
 import HomeScreen from '../screens/HomeScreen';
+import SpendingScreen from '../screens/SpendingScreen';
 import HistoryScreen from '../screens/HistoryScreen';
-import ProfileScreen from '../screens/ProfileScreen';
+import WalletScreen from '../screens/WalletScreen';
+import NotificationScreen from '../screens/NotificationScreen';
 
 const Tab = createBottomTabNavigator();
+const Stack = createStackNavigator();
 
-const AppNavigator = ({ fetchData }) => {
+// Stack Navigator for screens that need a header (e.g., Notifications)
+const AppNavigator = () => {
   return (
-    <NavigationContainer style={{ backgroundColor: '#1a1a2e' }}>
-      <Tab.Navigator
-        initialRouteName="Home"
-        screenOptions={{
-          headerShown: false,
+    <Stack.Navigator>
+      {/* The Tab Navigator is placed inside the Stack Navigator.
+        This allows the tabs to be visible on all screens,
+        and you can still navigate to screens that are not part of the tabs.
+      */}
+      <Stack.Screen
+        name="MainTabs"
+        component={MainTabs}
+        options={{ headerShown: false }}
+      />
 
-          tabBarActiveTintColor: '#8B5CF6', // Warna ungu untuk ikon aktif
-          tabBarInactiveTintColor: '#fff', // Warna putih untuk ikon tidak aktif
-          tabBarStyle: {
-            backgroundColor: 'rgba(59, 58, 58, 0.9)',
-            borderTopWidth: 0, // Hapus garis atas
-            elevation: 0, // Hapus shadow di Android
-            paddingBottom: 5,
-            height: 60,
-            borderRadius: 10,
-            position: 'absolute',
-            bottom: 0, // Menyesuaikan jarak dari bawah layar
-            left: 20,
-            right: 20,
-            height: 70,
-            paddingBottom: 20, // Tambahkan padding untuk menampung jarak dari bawah
-          },
-          tabBarLabelStyle: {
-            fontSize: 12,
-            fontWeight: 'bold',
-            marginTop: -5,
-          },
-          tabBarItemStyle: {
-            paddingTop: 5,
-          },
-          // Tambahkan ini untuk mengatur latar belakang setiap layar
-          sceneContainerStyle: {
-            backgroundColor: '#1a1a2e',
-          },
+      {/* Screen for notifications, accessible from the Home screen */}
+      <Stack.Screen
+        name="NotificationScreen"
+        component={NotificationScreen}
+        options={{
+          headerTitle: 'Notifikasi',
+          headerStyle: { backgroundColor: '#1a1a2e' },
+          headerTintColor: '#fff',
+        }}
+      />
+    </Stack.Navigator>
+  );
+};
+
+// Bottom Tab Navigator for the main screens
+const MainTabs = ({ fetchData }) => {
+  return (
+    <Tab.Navigator
+      initialRouteName="Home"
+      screenOptions={{
+        headerShown: false,
+        tabBarActiveTintColor: '#8B5CF6',
+        tabBarInactiveTintColor: '#fff',
+        tabBarStyle: {
+          backgroundColor: '#38383A',
+          borderTopWidth: 0,
+          elevation: 0,
+          paddingBottom: 5,
+          height: 60,
+          borderRadius: 10,
+          position: 'absolute',
+          bottom: 0,
+          left: 20,
+          right: 20,
+          height: 70,
+          paddingBottom: 20,
+        },
+        tabBarLabelStyle: {
+          fontSize: 12,
+          fontWeight: 'bold',
+          marginTop: -5,
+        },
+        tabBarItemStyle: {
+          paddingTop: 5,
+        },
+        sceneContainerStyle: {
+          backgroundColor: '#1a1a2e',
+        },
+      }}
+    >
+      <Tab.Screen
+        name="Home"
+        component={HomeScreen}
+        options={{
+          title: 'Home',
+          tabBarIcon: ({ color, size }) => (
+            <MaterialCommunityIcons
+              name="home"
+              color={color}
+              size={size}
+            />
+          ),
+        }}
+        initialParams={{ fetchData }} // Pass fetchData to HomeScreen
+      />
+      <Tab.Screen
+        name="Riwayat"
+        component={HistoryScreen}
+        options={{
+          title: 'Riwayat',
+          tabBarIcon: ({ color, size }) => (
+            <MaterialCommunityIcons
+              name="history"
+              color={color}
+              size={size}
+            />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Spending"
+        component={SpendingScreen} // This is the correct way
+        options={{
+          title: 'Spending',
+          tabBarIcon: ({ color, size }) => (
+            <MaterialCommunityIcons
+              name="credit-card" // Using a more appropriate icon for a spending tab
+              color={color}
+              size={size}
+            />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Wallet"
+        options={{
+          title: 'Wallet',
+          tabBarIcon: ({ color, size }) => (
+            <MaterialCommunityIcons
+              name="account"
+              color={color}
+              size={size}
+            />
+          ),
         }}
       >
-        <Tab.Screen
-          name="Home"
-          component={HomeScreen}
-          options={{
-            title: 'Home',
-            tabBarIcon: ({ color, size }) => (
-              <MaterialCommunityIcons
-                name="home"
-                color={color}
-                size={size}
-              />
-            ),
-          }}
-        />
-        <Tab.Screen
-          name="Riwayat"
-          component={HistoryScreen}
-          options={{
-            title: 'Riwayat',
-            tabBarIcon: ({ color, size }) => (
-              <MaterialCommunityIcons
-                name="history"
-                color={color}
-                size={size}
-              />
-            ),
-          }}
-        />
-        <Tab.Screen
-          name="Profil"
-          options={{
-            title: 'Profil',
-            tabBarIcon: ({ color, size }) => (
-              <MaterialCommunityIcons
-                name="account"
-                color={color}
-                size={size}
-              />
-            ),
-          }}
-        >
-          {(props) => (
-            <ProfileScreen
-              {...props}
-              fetchData={fetchData}
-            />
-          )}
-        </Tab.Screen>
-      </Tab.Navigator>
-    </NavigationContainer>
+        {(props) => (
+          <WalletScreen
+            {...props}
+            fetchData={fetchData}
+          />
+        )}
+      </Tab.Screen>
+    </Tab.Navigator>
   );
 };
 

@@ -1,15 +1,12 @@
 {
   "expo": {
-    "name": "Uang Harian App",
+    "name": "CekCuan",
     "slug": "uang-harian",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "icon": "./src/assets/cekcuan.png",
     "splash": {
-      "image": "./assets/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "image": "./src/assets/cekcuan.png"
     },
     "assetBundlePatterns": ["**/*"],
     "ios": {
@@ -17,12 +14,17 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
-      }
+        "foregroundImage": "./src/assets/cekcuan.png"
+      },
+      "package": "com.nfalfdlh.uangharian"
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./src/assets/cekcuan.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "b32ce2cb-a477-42a0-a380-cdbca9ad20d4"
+      }
     }
   }
 }

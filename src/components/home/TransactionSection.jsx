@@ -46,6 +46,7 @@ const styles = StyleSheet.create({
   transactionsSection: {
     flex: 1,
     paddingHorizontal: 20,
+    paddingBottom: 20,
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -59,6 +60,7 @@ const styles = StyleSheet.create({
   },
   transactionsList: {
     flex: 1,
+    marginBottom: 45,
   },
   emptyText: {
     textAlign: 'center',

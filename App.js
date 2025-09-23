@@ -1,21 +1,22 @@
+import 'react-native-gesture-handler';
 import React, { useState, useEffect, useCallback } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View, Text } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { NavigationContainer } from '@react-navigation/native';
 import * as Font from 'expo-font';
-import { initDB, getCategories, getTransactions, getCurrentBalance } from './src/services/database'; // Import your data functions
+import { initDB, getCategories, getTransactions, getCurrentBalance } from './src/services/database';
 import AppNavigator from './src/navigation/AppNavigator';
+import { AppProvider } from './src/context/AppContext';
 
 const App = () => {
   const [appIsReady, setAppIsReady] = useState(false);
 
-  // This is the function you need to pass down
   const fetchData = useCallback(async () => {
     try {
       await getCategories();
       await getTransactions();
       await getCurrentBalance();
-      // Add more data fetching logic here if needed
       console.log('App data successfully refreshed.');
     } catch (error) {
       console.error('Failed to fetch data:', error);
@@ -26,7 +27,7 @@ const App = () => {
     async function prepare() {
       try {
         await initDB();
-        await fetchData(); // Call fetchData on initial app load
+        await fetchData();
         await Font.loadAsync({
           'Shoika-Regular': require('./src/assets/fonts/Shoika-Regular.ttf'),
         });
@@ -47,11 +48,14 @@ const App = () => {
     );
   }
 
-  // Pass fetchData to the AppNavigator component
   return (
     <SafeAreaProvider>
       <StatusBar style="auto" />
-      <AppNavigator fetchData={fetchData} />
+      <NavigationContainer>
+        <AppProvider fetchData={fetchData}>
+          <AppNavigator />
+        </AppProvider>
+      </NavigationContainer>
     </SafeAreaProvider>
   );
 };

@@ -1,31 +1,37 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, ScrollView, Dimensions, Animated, Easing, Alert } from 'react-native';
+import { View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, ScrollView, Dimensions, Animated, Easing } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Button } from '../common/Button';
-import CustomAlert from '../common/CustomAlert';
 import { addCategory, getCategories } from '../../services/database';
-
+import CustomAlert from '../common/CustomAlert';
 const { width, height } = Dimensions.get('window');
 
-const iconOptions = {
-  Pengeluaran: ['silverware-fork-knife', 'shopping-outline', 'home-outline', 'car-sports', 'account-cash-outline', 'medical-bag', 'book-open-variant', 'food-outline', 'coffee-outline', 'cellphone', 'plane-train'],
-  Pemasukan: ['cash-plus', 'trending-up', 'wallet-plus-outline', 'sack', 'chart-line', 'piggy-bank-outline', 'plus-box-outline'],
-  Tabungan: ['piggy-bank', 'safe', 'sack-dollar', 'wallet-plus'],
-};
+const iconOptions = ['silverware-fork-knife', 'shopping-outline', 'home-outline', 'car-sports', 'account-cash-outline', 'medical-bag', 'book-open-variant', 'food-outline', 'coffee-outline', 'cellphone', 'plane-train'];
 
-const AddCategoryModal = ({ isVisible, onClose, onReturnToTransaction, fetchData }) => {
+const TransactionAndCategoryModal = ({ isVisible, onClose, onSave, categories, fetchData }) => {
+  const [modalStep, setModalStep] = useState('category_select');
+  const [amount, setAmount] = useState('');
+  const [description, setDescription] = useState('');
+  const [details, setDetails] = useState('');
+  const [type, setType] = useState('pengeluaran');
+  const [selectedCategoryId, setSelectedCategoryId] = useState(null);
   const [newCategoryName, setNewCategoryName] = useState('');
   const [selectedIcon, setSelectedIcon] = useState(null);
+
   const [alertVisible, setAlertVisible] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
   const [alertType, setAlertType] = useState('success');
-  const [activeTab, setActiveTab] = useState('Pengeluaran');
 
   const slideAnim = useRef(new Animated.Value(height)).current;
+
   const resetState = () => {
+    setModalStep('category_select');
+    setAmount('');
+    setDescription('');
+    setDetails('');
+    setSelectedCategoryId(null);
     setNewCategoryName('');
     setSelectedIcon(null);
-    setActiveTab('Pengeluaran');
   };
 
   useEffect(() => {
@@ -48,161 +54,256 @@ const AddCategoryModal = ({ isVisible, onClose, onReturnToTransaction, fetchData
     }
   }, [isVisible, slideAnim, height]);
 
-  useEffect(() => {
-    let timer;
-    if (alertVisible && alertType === 'success') {
-      timer = setTimeout(() => {
-        setAlertVisible(false);
-        if (onReturnToTransaction) {
-          onReturnToTransaction();
-        } else {
-          onClose();
-        }
-      }, 1200);
-    }
-    return () => clearTimeout(timer);
-  }, [alertVisible, alertType, onReturnToTransaction]);
+  const showAlert = (message, type) => {
+    setAlertMessage(message);
+    setAlertType(type);
+    setAlertVisible(true);
+  };
 
-  const handleSave = async () => {
+  const handleNextStep = () => {
+    if (!selectedCategoryId) {
+      showAlert('Silakan pilih salah satu kategori.', 'error');
+      return;
+    }
+    setModalStep('input_form');
+  };
+
+  const handleSaveTransaction = () => {
+    if (description === '' && amount === '') {
+      showAlert('Silahkan lengkapi form', 'error');
+      return;
+    }
+    if (amount === '' || isNaN(parseFloat(amount))) {
+      showAlert('Harga harus diisi dengan angka.', 'error');
+      return;
+    }
+    if (description === '') {
+      showAlert('Nama pengeluaran harus diisi.', 'error');
+      return;
+    }
+    onSave(parseFloat(amount), description, type, selectedCategoryId, details);
+    onClose();
+  };
+
+  const handleSaveCategory = async () => {
     if (newCategoryName === '') {
-      setAlertMessage('Nama kategori tidak boleh kosong.');
-      setAlertType('error');
-      setAlertVisible(true);
+      showAlert('Nama kategori tidak boleh kosong.', 'error');
       return;
     }
-
     if (!selectedIcon) {
-      setAlertMessage('Silakan pilih ikon.');
-      setAlertType('error');
-      setAlertVisible(true);
+      showAlert('Silakan pilih ikon.', 'error');
       return;
     }
-
     try {
       const existingCategories = await getCategories();
       const categoryExists = existingCategories.some((cat) => cat.name.toLowerCase() === newCategoryName.toLowerCase());
-
       if (categoryExists) {
-        setAlertMessage('Nama kategori sudah ada. Mohon gunakan nama yang berbeda.');
-        setAlertType('error');
-        setAlertVisible(true);
+        showAlert('Nama kategori sudah ada. Mohon gunakan nama yang berbeda.', 'error');
         return;
       }
-
       await addCategory(newCategoryName, selectedIcon);
       await fetchData();
-
-      setAlertMessage('Kategori baru berhasil ditambahkan!');
-      setAlertType('success');
-      setAlertVisible(true);
+      showAlert('Kategori baru berhasil ditambahkan!', 'success');
+      setModalStep('category_select');
     } catch (error) {
       console.error('Error saat menambah kategori:', error);
-      setAlertMessage('Terjadi kesalahan saat menambah kategori. Silakan coba lagi.');
-      setAlertType('error');
-      setAlertVisible(true);
+      showAlert('Terjadi kesalahan saat menambah kategori. Silakan coba lagi.', 'error');
     }
   };
 
-  const renderContent = () => {
-    // Only render the expense category content
-    return (
-      <>
-        <Text style={styles.label}>Nama Kategori</Text>
-        <View style={styles.inputContainer}>
-          <TextInput
-            style={styles.input}
-            placeholder="Masukkan Kategori..."
-            placeholderTextColor="#888"
-            value={newCategoryName}
-            onChangeText={setNewCategoryName}
-          />
-          <MaterialCommunityIcons
-            name="pencil"
-            size={20}
-            color="#888"
-            style={styles.inputIcon}
-          />
-        </View>
-
-        <Text style={styles.label}>Pilih Icon</Text>
-        <View style={styles.iconGridContainer}>
-          {iconOptions.Pengeluaran.map((item) => (
+  const renderModalContent = () => {
+    if (modalStep === 'category_select') {
+      if (!categories || !Array.isArray(categories)) {
+        return (
+          <View style={[styles.modalContent, styles.loadingContainer]}>
+            <Text style={styles.modalTitle}>Memuat Kategori...</Text>
+            <Text style={styles.modalSubText}>Pastikan Anda terhubung ke internet.</Text>
+          </View>
+        );
+      }
+      const expenseCategories = categories.filter((cat) => ['Pemasukan', 'Pengeluaran', 'Tabungan'].indexOf(cat.name) === -1);
+      return (
+        <View style={styles.modalBody}>
+          <View style={styles.categoryGridContainer}>
+            {expenseCategories.map((item) => (
+              <TouchableOpacity
+                key={item.id.toString()}
+                style={styles.categoryGridButton}
+                onPress={() => setSelectedCategoryId(item.id)}
+              >
+                <View style={[styles.categoryIconContainer, selectedCategoryId === item.id && styles.categoryIconContainerActive]}>
+                  <MaterialCommunityIcons
+                    name={item.icon || 'help-circle-outline'}
+                    size={24}
+                    color="#fff"
+                  />
+                </View>
+                <Text style={styles.categoryGridText}>{item.name}</Text>
+              </TouchableOpacity>
+            ))}
             <TouchableOpacity
-              key={item}
+              key="add-category-button"
               style={styles.categoryGridButton}
-              onPress={() => setSelectedIcon(item)}
+              onPress={() => setModalStep('add_category')}
             >
-              <View style={[styles.categoryIconContainer, selectedIcon === item && styles.categoryIconContainerActive]}>
+              <View style={styles.addCategoryIconContainer}>
                 <MaterialCommunityIcons
-                  name={item}
+                  name="plus-circle-outline"
                   size={24}
                   color="#fff"
                 />
               </View>
+              <Text style={styles.categoryGridText}>Tambah Kategori</Text>
             </TouchableOpacity>
-          ))}
+          </View>
+          <Button
+            title="Next →"
+            onPress={handleNextStep}
+            style={styles.nextButton}
+          />
         </View>
-        <Button
-          title="SIMPAN"
-          onPress={handleSave}
-          style={styles.saveButton}
-        />
-      </>
-    );
+      );
+    } else if (modalStep === 'input_form') {
+      return (
+        <View style={styles.modalBody}>
+          <Text style={styles.label}>Nama</Text>
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={styles.input}
+              placeholder="Masukkan Nama..."
+              placeholderTextColor="#888"
+              value={description}
+              onChangeText={setDescription}
+            />
+            <MaterialCommunityIcons
+              name="pencil"
+              size={20}
+              color="#888"
+              style={styles.inputIcon}
+            />
+          </View>
+          <Text style={styles.label}>Harga</Text>
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={styles.input}
+              keyboardType="numeric"
+              placeholder="Masukkan Harga..."
+              placeholderTextColor="#888"
+              value={amount}
+              onChangeText={setAmount}
+            />
+            <Text style={styles.inputCurrency}>$</Text>
+          </View>
+          <Button
+            title="SIMPAN"
+            onPress={handleSaveTransaction}
+            style={styles.saveButton}
+          />
+        </View>
+      );
+    } else if (modalStep === 'add_category') {
+      return (
+        <View style={styles.modalBody}>
+          <Text style={styles.label}>Nama Kategori</Text>
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={styles.input}
+              placeholder="Masukkan Kategori..."
+              placeholderTextColor="#888"
+              value={newCategoryName}
+              onChangeText={setNewCategoryName}
+            />
+            <MaterialCommunityIcons
+              name="pencil"
+              size={20}
+              color="#888"
+              style={styles.inputIcon}
+            />
+          </View>
+          <Text style={styles.label}>Pilih Icon</Text>
+          <View style={styles.iconGridContainer}>
+            {iconOptions.map((item) => (
+              <TouchableOpacity
+                key={item}
+                style={styles.categoryGridButton}
+                onPress={() => setSelectedIcon(item)}
+              >
+                <View style={[styles.categoryIconContainer, selectedIcon === item && styles.categoryIconContainerActive]}>
+                  <MaterialCommunityIcons
+                    name={item}
+                    size={24}
+                    color="#fff"
+                  />
+                </View>
+              </TouchableOpacity>
+            ))}
+          </View>
+          <Button
+            title="SIMPAN"
+            onPress={handleSaveCategory}
+            style={styles.saveButton}
+          />
+        </View>
+      );
+    }
   };
 
   return (
-    <>
-      <Modal
-        animationType="none"
-        transparent={true}
-        visible={isVisible}
-        onRequestClose={onClose}
-      >
-        <View style={styles.modalOverlay}>
-          <Animated.View style={[styles.animatedContainer, { transform: [{ translateY: slideAnim }] }]}>
+    <Modal
+      animationType="none"
+      transparent={true}
+      visible={isVisible}
+      onRequestClose={onClose}
+    >
+      <View style={styles.modalOverlay}>
+        <Animated.View style={[styles.animatedContainer, { transform: [{ translateY: slideAnim }] }]}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              {modalStep !== 'category_select' ? (
+                <TouchableOpacity
+                  onPress={() => setModalStep('category_select')}
+                  style={styles.backButton}
+                >
+                  <MaterialCommunityIcons
+                    name="arrow-left"
+                    size={24}
+                    color="#fff"
+                  />
+                </TouchableOpacity>
+              ) : (
+                <View style={styles.invisibleButton} />
+              )}
+              <Text style={[styles.modalTitle, modalStep === 'category_select' ? styles.centerTitle : null, modalStep === 'category_select' && styles.categoryTitleMargin]}>
+                {modalStep === 'category_select' ? 'Pilih Kategori' : modalStep === 'input_form' ? 'Masukkan Pengeluaran' : 'Tambah Kategori'}
+              </Text>
+              <TouchableOpacity
+                onPress={onClose}
+                style={styles.closeButton}
+              >
+                <MaterialCommunityIcons
+                  name="close"
+                  size={24}
+                  color="#fff"
+                />
+              </TouchableOpacity>
+            </View>
             <ScrollView
+              style={styles.scrollView}
               contentContainerStyle={styles.scrollViewContent}
               showsVerticalScrollIndicator={false}
             >
-              <View style={styles.modalContent}>
-                <View style={styles.modalHeader}>
-                  <TouchableOpacity
-                    onPress={onReturnToTransaction}
-                    style={styles.backButton}
-                  >
-                    <MaterialCommunityIcons
-                      name="arrow-left"
-                      size={24}
-                      color="#fff"
-                    />
-                  </TouchableOpacity>
-                  <Text style={styles.modalTitle}>Tambah Kategori</Text>
-                  <TouchableOpacity
-                    onPress={onClose}
-                    style={styles.closeButton}
-                  >
-                    <MaterialCommunityIcons
-                      name="close"
-                      size={24}
-                      color="#fff"
-                    />
-                  </TouchableOpacity>
-                </View>
-                {renderContent()}
-              </View>
+              {renderModalContent()}
             </ScrollView>
-          </Animated.View>
-        </View>
-      </Modal>
-
+          </View>
+        </Animated.View>
+      </View>
       <CustomAlert
         message={alertMessage}
         type={alertType}
         isVisible={alertVisible}
         onClose={() => setAlertVisible(false)}
       />
-    </>
+    </Modal>
   );
 };
 
@@ -216,6 +317,9 @@ const styles = StyleSheet.create({
     maxHeight: '85%',
     width: '100%',
     justifyContent: 'flex-end',
+  },
+  scrollView: {
+    width: '100%',
   },
   scrollViewContent: {
     flexGrow: 1,
@@ -232,6 +336,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingTop: 30,
   },
+  loadingContainer: {
+    height: 300,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalSubText: {
+    color: '#888',
+    fontSize: 14,
+    marginTop: 5,
+    textAlign: 'center',
+  },
   modalHeader: {
     width: '100%',
     flexDirection: 'row',
@@ -245,12 +360,24 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
     color: '#ffffff',
+    marginStart: 5,
+  },
+  centerTitle: {
+    flex: 1,
+    textAlign: 'center',
+  },
+  categoryTitleMargin: {
+    marginLeft: -10,
+  },
+  closeButton: {
+    padding: 5,
   },
   backButton: {
     padding: 5,
   },
-  closeButton: {
-    padding: 5,
+  invisibleButton: {
+    width: 24,
+    height: 24,
   },
   label: {
     fontSize: 16,
@@ -258,7 +385,6 @@ const styles = StyleSheet.create({
     marginTop: 15,
     color: '#ffffff',
     fontWeight: 'bold',
-    alignSelf: 'flex-start',
   },
   inputContainer: {
     flexDirection: 'row',
@@ -279,21 +405,42 @@ const styles = StyleSheet.create({
   inputIcon: {
     marginLeft: 10,
   },
-  iconGridContainer: {
+  inputCurrency: {
+    color: '#888',
+    fontSize: 18,
+    marginLeft: 5,
+  },
+  saveButton: {
+    marginTop: 30,
+    width: '100%',
+    backgroundColor: '#8B5CF6',
+  },
+  categoryGridContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'flex-start',
     width: '100%',
     paddingHorizontal: 10,
     marginTop: 10,
+    marginStart: 5,
+  },
+  iconGridContainer: {
+    flexDirection: 'row', // Agar item-item berada dalam satu baris
+    flexWrap: 'wrap', // Membuat item pindah ke baris berikutnya jika ruang habis
+    justifyContent: 'start', // Rata tengah antara ikon-ikon
+    paddingHorizontal: 10,
+
+    marginTop: 10,
+    width: '100%',
   },
   categoryGridButton: {
     alignItems: 'center',
-    margin: 8,
-    width: (width - 10) / 6,
+    margin: 10,
+    width: (width - 40) / 6, // Ukuran ikon yang lebih kecil dan dengan beberapa ikon dalam satu baris
+    justifyContent: 'between', // Agar ikon berada di tengah
   },
+
   categoryIconContainer: {
-    width: 60,
+    width: 60, // Pastikan lebar dan tinggi sesuai
     height: 60,
     borderRadius: 30,
     backgroundColor: 'rgba(139, 92, 246, 0.2)',
@@ -301,20 +448,64 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 5,
   },
+
+  addCategoryIconContainer: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 5,
+  },
   categoryIconContainerActive: {
     backgroundColor: 'rgba(139, 92, 246, 1)',
   },
-  saveButton: {
+  categoryGridText: {
+    color: '#ffffff',
+    fontSize: 12,
+    textAlign: 'center',
+    width: 60,
+  },
+  addCategoryText: {
+    color: '#ffffff',
+    marginTop: 5,
+  },
+  nextButton: {
     marginTop: 30,
     width: '100%',
     backgroundColor: '#8B5CF6',
   },
-  modalSubText: {
-    color: '#888',
-    fontSize: 14,
-    marginTop: 5,
-    textAlign: 'center',
+  modalBody: {
+    width: '100%',
+  },
+  alertContainer: {
+    paddingTop: 40,
+    width: '100%',
+    position: 'absolute',
+    top: 0,
+    zIndex: 1000,
+  },
+  alertContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 15,
+    marginHorizontal: 15,
+    borderRadius: 8,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+  },
+  icon: {
+    marginRight: 10,
+  },
+  messageText: {
+    color: '#fff',
+    fontSize: 16,
+    flex: 1,
   },
 });
 
-export default AddCategoryModal;
+export default TransactionAndCategoryModal;

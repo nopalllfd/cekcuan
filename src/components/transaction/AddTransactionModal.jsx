@@ -1,92 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, ScrollView, Dimensions, Animated, Easing } from 'react-native';
+import { View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, ScrollView, Dimensions, Animated, Easing, KeyboardAvoidingView, Platform } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Button } from '../common/Button';
 import { addCategory, getCategories } from '../../services/database';
+import CustomAlert from '../common/CustomAlert';
 
 const { width, height } = Dimensions.get('window');
 
 const iconOptions = ['silverware-fork-knife', 'shopping-outline', 'home-outline', 'car-sports', 'account-cash-outline', 'medical-bag', 'book-open-variant', 'food-outline', 'coffee-outline', 'cellphone', 'plane-train'];
-
-const CustomAlert = ({ message, type, isVisible, onClose }) => {
-  const animatedValue = useRef(new Animated.Value(-100)).current;
-  const opacityValue = useRef(new Animated.Value(0)).current;
-
-  const getAlertStyle = () => {
-    switch (type) {
-      case 'success':
-        return { backgroundColor: '#663fc1f1' };
-      case 'error':
-        return { backgroundColor: '#FFB86E' };
-      default:
-        return { backgroundColor: '#663fc1f1' };
-    }
-  };
-
-  const getIconName = () => {
-    switch (type) {
-      case 'success':
-        return 'check-circle-outline';
-      case 'error':
-        return 'alert-circle-outline';
-      default:
-        return 'information-outline';
-    }
-  };
-
-  useEffect(() => {
-    if (isVisible) {
-      Animated.parallel([
-        Animated.timing(animatedValue, {
-          toValue: 0,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-        Animated.timing(opacityValue, {
-          toValue: 1,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-      ]).start(() => {
-        setTimeout(() => {
-          Animated.parallel([
-            Animated.timing(animatedValue, {
-              toValue: -100,
-              duration: 300,
-              useNativeDriver: true,
-            }),
-            Animated.timing(opacityValue, {
-              toValue: 0,
-              duration: 300,
-              useNativeDriver: true,
-            }),
-          ]).start(() => onClose());
-        }, 3000);
-      });
-    }
-  }, [isVisible, animatedValue, opacityValue, onClose]);
-
-  return (
-    <Modal
-      transparent={true}
-      animationType="none"
-      visible={isVisible}
-      onRequestClose={onClose}
-    >
-      <Animated.View style={[styles.alertContainer, { transform: [{ translateY: animatedValue }], opacity: opacityValue }]}>
-        <View style={[styles.alertContent, getAlertStyle()]}>
-          <MaterialCommunityIcons
-            name={getIconName()}
-            size={24}
-            color="#fff"
-            style={styles.icon}
-          />
-          <Text style={styles.messageText}>{message}</Text>
-        </View>
-      </Animated.View>
-    </Modal>
-  );
-};
 
 const TransactionAndCategoryModal = ({ isVisible, onClose, onSave, categories, fetchData }) => {
   const [modalStep, setModalStep] = useState('category_select');
@@ -103,6 +24,7 @@ const TransactionAndCategoryModal = ({ isVisible, onClose, onSave, categories, f
   const [alertType, setAlertType] = useState('success');
 
   const slideAnim = useRef(new Animated.Value(height)).current;
+  const overlayOpacity = useRef(new Animated.Value(0)).current;
 
   const resetState = () => {
     setModalStep('category_select');
@@ -116,23 +38,39 @@ const TransactionAndCategoryModal = ({ isVisible, onClose, onSave, categories, f
 
   useEffect(() => {
     if (isVisible) {
-      Animated.timing(slideAnim, {
-        toValue: 0,
-        duration: 400,
-        easing: Easing.bezier(0.25, 0.1, 0.25, 1),
-        useNativeDriver: true,
-      }).start();
+      Animated.parallel([
+        Animated.timing(slideAnim, {
+          toValue: 0,
+          duration: 500,
+          easing: Easing.out(Easing.quad),
+          useNativeDriver: true,
+        }),
+        Animated.timing(overlayOpacity, {
+          toValue: 1,
+          duration: 350,
+          easing: Easing.in(Easing.ease),
+          useNativeDriver: true,
+        }),
+      ]).start();
     } else {
-      Animated.timing(slideAnim, {
-        toValue: height,
-        duration: 350,
-        easing: Easing.out(Easing.cubic),
-        useNativeDriver: true,
-      }).start(() => {
+      Animated.parallel([
+        Animated.timing(slideAnim, {
+          toValue: height,
+          duration: 350,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }),
+        Animated.timing(overlayOpacity, {
+          toValue: 0,
+          duration: 300,
+          easing: Easing.out(Easing.ease),
+          useNativeDriver: true,
+        }),
+      ]).start(() => {
         resetState();
       });
     }
-  }, [isVisible, slideAnim, height]);
+  }, [isVisible, slideAnim, overlayOpacity, height]);
 
   const showAlert = (message, type) => {
     setAlertMessage(message);
@@ -335,48 +273,53 @@ const TransactionAndCategoryModal = ({ isVisible, onClose, onSave, categories, f
       visible={isVisible}
       onRequestClose={onClose}
     >
-      <View style={styles.modalOverlay}>
-        <Animated.View style={[styles.animatedContainer, { transform: [{ translateY: slideAnim }] }]}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              {modalStep !== 'category_select' ? (
+      <KeyboardAvoidingView
+        style={styles.modalOverlay}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <Animated.View style={[styles.modalOverlay, { opacity: overlayOpacity }]}>
+          <Animated.View style={[styles.animatedContainer, { transform: [{ translateY: slideAnim }] }]}>
+            <View style={styles.modalContent}>
+              <View style={styles.modalHeader}>
+                {modalStep !== 'category_select' ? (
+                  <TouchableOpacity
+                    onPress={() => setModalStep('category_select')}
+                    style={styles.backButton}
+                  >
+                    <MaterialCommunityIcons
+                      name="arrow-left"
+                      size={24}
+                      color="#fff"
+                    />
+                  </TouchableOpacity>
+                ) : (
+                  <View style={styles.invisibleButton} />
+                )}
+                <Text style={[styles.modalTitle, modalStep === 'category_select' ? styles.centerTitle : null, modalStep === 'category_select' && styles.categoryTitleMargin]}>
+                  {modalStep === 'category_select' ? 'Pilih Kategori' : modalStep === 'input_form' ? 'Masukkan Pengeluaran' : 'Tambah Kategori'}
+                </Text>
                 <TouchableOpacity
-                  onPress={() => setModalStep('category_select')}
-                  style={styles.backButton}
+                  onPress={onClose}
+                  style={styles.closeButton}
                 >
                   <MaterialCommunityIcons
-                    name="arrow-left"
+                    name="close"
                     size={24}
                     color="#fff"
                   />
                 </TouchableOpacity>
-              ) : (
-                <View style={styles.invisibleButton} />
-              )}
-              <Text style={[styles.modalTitle, modalStep === 'category_select' ? styles.centerTitle : null, modalStep === 'category_select' && styles.categoryTitleMargin]}>
-                {modalStep === 'category_select' ? 'Pilih Kategori' : modalStep === 'input_form' ? 'Masukkan Pengeluaran' : 'Tambah Kategori'}
-              </Text>
-              <TouchableOpacity
-                onPress={onClose}
-                style={styles.closeButton}
+              </View>
+              <ScrollView
+                style={styles.scrollView}
+                contentContainerStyle={styles.scrollViewContent}
+                showsVerticalScrollIndicator={false}
               >
-                <MaterialCommunityIcons
-                  name="close"
-                  size={24}
-                  color="#fff"
-                />
-              </TouchableOpacity>
+                {renderModalContent()}
+              </ScrollView>
             </View>
-            <ScrollView
-              style={styles.scrollView}
-              contentContainerStyle={styles.scrollViewContent}
-              showsVerticalScrollIndicator={false}
-            >
-              {renderModalContent()}
-            </ScrollView>
-          </View>
+          </Animated.View>
         </Animated.View>
-      </View>
+      </KeyboardAvoidingView>
       <CustomAlert
         message={alertMessage}
         type={alertType}
@@ -504,23 +447,21 @@ const styles = StyleSheet.create({
     marginStart: 5,
   },
   iconGridContainer: {
-    flexDirection: 'row', // Agar item-item berada dalam satu baris
-    flexWrap: 'wrap', // Membuat item pindah ke baris berikutnya jika ruang habis
-    justifyContent: 'start', // Rata tengah antara ikon-ikon
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'start',
     paddingHorizontal: 10,
-
     marginTop: 10,
     width: '100%',
   },
   categoryGridButton: {
     alignItems: 'center',
     margin: 10,
-    width: (width - 40) / 6, // Ukuran ikon yang lebih kecil dan dengan beberapa ikon dalam satu baris
-    justifyContent: 'between', // Agar ikon berada di tengah
+    width: (width - 40) / 6,
+    justifyContent: 'center',
   },
-
   categoryIconContainer: {
-    width: 60, // Pastikan lebar dan tinggi sesuai
+    width: 60,
     height: 60,
     borderRadius: 30,
     backgroundColor: 'rgba(139, 92, 246, 0.2)',
@@ -528,7 +469,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 5,
   },
-
   addCategoryIconContainer: {
     width: 60,
     height: 60,
@@ -558,33 +498,6 @@ const styles = StyleSheet.create({
   },
   modalBody: {
     width: '100%',
-  },
-  alertContainer: {
-    paddingTop: 40,
-    width: '100%',
-    position: 'absolute',
-    top: 0,
-    zIndex: 1000,
-  },
-  alertContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 15,
-    marginHorizontal: 15,
-    borderRadius: 8,
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-  },
-  icon: {
-    marginRight: 10,
-  },
-  messageText: {
-    color: '#fff',
-    fontSize: 16,
-    flex: 1,
   },
 });
 

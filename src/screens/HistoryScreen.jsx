@@ -1,12 +1,24 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, FlatList, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, StyleSheet, FlatList, ActivityIndicator, Alert, StatusBar } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
 import { getTransactions } from '../services/database';
 import TransactionItem from '../components/transaction/TransactionItem';
+import DateSelector from '../components/history/DateSelector';
+
+const formatToShortDate = (date) => {
+  const d = new Date(date);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
 
 const HistoryScreen = () => {
   const [transactions, setTransactions] = useState([]);
+  const [filteredTransactions, setFilteredTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedDate, setSelectedDate] = useState(new Date());
 
   const fetchData = async () => {
     try {
@@ -27,6 +39,16 @@ const HistoryScreen = () => {
     }, [])
   );
 
+  useEffect(() => {
+    const formattedSelectedDate = formatToShortDate(selectedDate);
+    const filtered = transactions.filter((transaction) => formatToShortDate(transaction.date) === formattedSelectedDate);
+    setFilteredTransactions(filtered);
+  }, [selectedDate, transactions]);
+
+  const handleDateChange = (date) => {
+    setSelectedDate(date);
+  };
+
   const renderItem = ({ item }) => <TransactionItem transaction={item} />;
 
   if (loading) {
@@ -34,7 +56,7 @@ const HistoryScreen = () => {
       <View style={styles.loadingContainer}>
         <ActivityIndicator
           size="large"
-          color="#0000ff"
+          color="#8B5CF6"
         />
       </View>
     );
@@ -42,14 +64,31 @@ const HistoryScreen = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.historyTitle}>Seluruh Riwayat Transaksi</Text>
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor="#1a1a2e"
+      />
+
+      <DateSelector
+        selectedDate={selectedDate}
+        onSelectDate={handleDateChange}
+      />
+
+      <View style={styles.historyHeader}>
+        <Text style={styles.historyTitle}>Riwayat Transaksi</Text>
+        <Ionicons
+          name="time-outline"
+          size={24}
+          color="#ccc"
+        />
+      </View>
 
       <FlatList
-        data={transactions}
+        data={filteredTransactions}
         keyExtractor={(item) => item.id.toString()}
         renderItem={renderItem}
         contentContainerStyle={styles.listContent}
-        ListEmptyComponent={() => <Text style={styles.emptyText}>Belum ada transaksi. Tambahkan yang pertama!</Text>}
+        ListEmptyComponent={() => <Text style={styles.emptyText}>Tidak ada transaksi pada tanggal ini.</Text>}
       />
     </View>
   );
@@ -58,27 +97,36 @@ const HistoryScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#1a1a2e',
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#1a1a2e',
+  },
+  historyHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    marginBottom: 15,
+    marginTop: 10,
   },
   historyTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    marginBottom: 10,
-    color: '#34495e',
+    color: '#fff',
   },
   listContent: {
-    paddingBottom: 20,
+    paddingHorizontal: 20,
+    paddingBottom: 100, // Increased padding to prevent overlap with the bottom tab bar
   },
   emptyText: {
     textAlign: 'center',
     marginTop: 50,
-    color: '#888',
+    color: '#ccc',
+    fontSize: 16,
   },
 });
 

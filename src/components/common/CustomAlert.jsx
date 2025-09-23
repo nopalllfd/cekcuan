@@ -3,9 +3,7 @@ import { Modal, Text, View, StyleSheet, Animated, TouchableOpacity } from 'react
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 const CustomAlert = ({ message, type, isVisible, onClose }) => {
-  // Animated value for the slide-down/up animation
   const animatedValue = useRef(new Animated.Value(-100)).current;
-  // Animated value for the fade-in/out animation
   const opacityValue = useRef(new Animated.Value(0)).current;
 
   const getAlertStyle = () => {
@@ -32,7 +30,6 @@ const CustomAlert = ({ message, type, isVisible, onClose }) => {
 
   useEffect(() => {
     if (isVisible) {
-      // Combined animation for slide-down and fade-in
       Animated.parallel([
         Animated.timing(animatedValue, {
           toValue: 0,
@@ -45,9 +42,7 @@ const CustomAlert = ({ message, type, isVisible, onClose }) => {
           useNativeDriver: true,
         }),
       ]).start(() => {
-        // Auto-hide after 3 seconds
         setTimeout(() => {
-          // Combined animation for slide-up and fade-out
           Animated.parallel([
             Animated.timing(animatedValue, {
               toValue: -100,
@@ -60,7 +55,7 @@ const CustomAlert = ({ message, type, isVisible, onClose }) => {
               useNativeDriver: true,
             }),
           ]).start(() => onClose());
-        }, 3000);
+        }, 1500);
       });
     }
   }, [isVisible, animatedValue, opacityValue, onClose]);
@@ -72,7 +67,6 @@ const CustomAlert = ({ message, type, isVisible, onClose }) => {
       visible={isVisible}
       onRequestClose={onClose}
     >
-      {/* Apply both transform and opacity to the Animated.View */}
       <Animated.View style={[styles.alertContainer, { transform: [{ translateY: animatedValue }], opacity: opacityValue }]}>
         <View style={[styles.alertContent, getAlertStyle()]}>
           <MaterialCommunityIcons
@@ -87,7 +81,6 @@ const CustomAlert = ({ message, type, isVisible, onClose }) => {
     </Modal>
   );
 };
-
 const styles = StyleSheet.create({
   alertContainer: {
     paddingTop: 40,
