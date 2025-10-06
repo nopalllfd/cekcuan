@@ -6,7 +6,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 const AddTransactionButton = ({ onPress }) => {
   return (
     <LinearGradient
-      colors={['#F8810BB2', '#531DA2', '#4A2AE9', '#2E065A']}
+      colors={['#ebebebff', '#ebebebff', '#ebebebff', '#ebebebff']}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={styles.addTransactionButtonWrapper}
@@ -30,13 +30,13 @@ const styles = StyleSheet.create({
   addTransactionButtonWrapper: {
     marginHorizontal: 20,
     marginBottom: 10,
-    borderRadius: 30,
-    padding: 2,
+    borderRadius: 10,
+    padding: 1,
   },
   addTransactionButton: {
     padding: 12,
-    borderRadius: 30,
-    backgroundColor: '#2a2a40',
+    borderRadius: 10,
+    backgroundColor: '#040824F2',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',

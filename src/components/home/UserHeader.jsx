@@ -46,7 +46,7 @@ const UserHeader = ({ onNotificationPress }) => {
         <MaterialIcons
           name="notifications"
           size={24}
-          color="#d5d5d5ff"
+          color="rgba(181, 210, 255, 1)"
         />
       </TouchableOpacity>
     </View>
@@ -59,13 +59,13 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingTop: 50,
+    paddingTop: 20,
     paddingBottom: 20,
   },
   userInfo: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: '#040824F2',
     borderRadius: 30,
     paddingVertical: 8,
     paddingHorizontal: 15,
@@ -75,7 +75,7 @@ const styles = StyleSheet.create({
     width: 35,
     height: 35,
     borderRadius: 17.5,
-    backgroundColor: '#8B5CF6',
+    backgroundColor: 'rgba(154, 194, 255, 1)',
     justifyContent: 'center',
     alignItems: 'center',
   },

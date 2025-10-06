@@ -8,7 +8,7 @@ const TransactionItem = ({ transaction }) => {
   }
 
   const isExpense = transaction.type === 'pengeluaran';
-  const amountColor = isExpense ? '#FFB86E' : '#64F8B3';
+  const amountColor = isExpense ? '#ffffffff' : '#64F8B3';
 
   const defaultIcon = 'help-circle-outline';
   const iconName = transaction.category_icon || defaultIcon;
@@ -48,7 +48,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     padding: 9,
     borderRadius: 8,
-    backgroundColor: '#01254aff',
+    borderColor: 'white',
+    borderWidth: 1,
+    backgroundColor: '#65656545',
     marginBottom: 10,
   },
   leftContent: {

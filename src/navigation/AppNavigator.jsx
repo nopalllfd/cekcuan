@@ -5,7 +5,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 
 import HomeScreen from '../screens/HomeScreen';
-import SpendingScreen from '../screens/SpendingScreen';
+import ChartScreen from '../screens/ChartScreen';
 import HistoryScreen from '../screens/HistoryScreen';
 import WalletScreen from '../screens/WalletScreen';
 import NotificationScreen from '../screens/NotificationScreen';
@@ -48,10 +48,10 @@ const MainTabs = ({ fetchData }) => {
       initialRouteName="Home"
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: '#8B5CF6',
+        tabBarActiveTintColor: 'rgba(133, 149, 198, 1)',
         tabBarInactiveTintColor: '#fff',
         tabBarStyle: {
-          backgroundColor: '#38383A',
+          backgroundColor: '#010923',
           borderTopWidth: 0,
           elevation: 0,
           paddingBottom: 5,
@@ -107,10 +107,10 @@ const MainTabs = ({ fetchData }) => {
         }}
       />
       <Tab.Screen
-        name="Spending"
-        component={SpendingScreen} // This is the correct way
+        name="Chart"
+        component={ChartScreen} // This is the correct way
         options={{
-          title: 'Spending',
+          title: 'Chart',
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons
               name="credit-card" // Using a more appropriate icon for a spending tab

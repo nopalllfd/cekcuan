@@ -5,6 +5,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { getTransactions } from '../services/database';
 import TransactionItem from '../components/transaction/TransactionItem';
 import DateSelector from '../components/history/DateSelector';
+// Import komponen SVG
+import Svg, { Defs, LinearGradient, Stop, Rect } from 'react-native-svg';
 
 const formatToShortDate = (date) => {
   const d = new Date(date);
@@ -51,12 +53,53 @@ const HistoryScreen = () => {
 
   const renderItem = ({ item }) => <TransactionItem transaction={item} />;
 
+  // --- Fungsi renderGradientBackground yang sama seperti HomeScreen ---
+  const renderGradientBackground = () => (
+    <View style={styles.gradientContainer}>
+      <Svg
+        height="100%"
+        width="100%"
+        style={StyleSheet.absoluteFillObject}
+      >
+        <Defs>
+          <LinearGradient
+            id="grad"
+            x1="0%"
+            y1="0%"
+            x2="0%"
+            y2="100%" // This creates a top-to-bottom (180deg) gradient
+          >
+            <Stop
+              offset="17.79%"
+              stopColor="#010923"
+            />
+            <Stop
+              offset="59.13%"
+              stopColor="#9AC2FF"
+            />
+            <Stop
+              offset="100%"
+              stopColor="#010923"
+            />
+          </LinearGradient>
+        </Defs>
+        <Rect
+          width="100%"
+          height="100%"
+          fill="url(#grad)"
+        />
+      </Svg>
+    </View>
+  );
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
+        {renderGradientBackground()}
         <ActivityIndicator
           size="large"
-          color="#8B5CF6"
+          color="#FFFFFF" // Sesuaikan warna indicator agar terlihat di atas gradient
+          style={{ zIndex: 10 }}
         />
       </View>
     );
@@ -64,32 +107,33 @@ const HistoryScreen = () => {
 
   return (
     <View style={styles.container}>
+      {renderGradientBackground()}
       <StatusBar
         barStyle="light-content"
-        backgroundColor="#1a1a2e"
+        backgroundColor="#010923" // Sesuaikan dengan warna paling gelap gradient
+        translucent={false}
       />
-
-      <DateSelector
-        selectedDate={selectedDate}
-        onSelectDate={handleDateChange}
-      />
-
-      <View style={styles.historyHeader}>
-        <Text style={styles.historyTitle}>Riwayat Transaksi</Text>
-        <Ionicons
-          name="time-outline"
-          size={24}
-          color="#ccc"
+      <View style={styles.contentContainer}>
+        <DateSelector
+          selectedDate={selectedDate}
+          onSelectDate={handleDateChange}
+        />
+        <View style={styles.historyHeader}>
+          <Text style={styles.historyTitle}>Riwayat Transaksi</Text>
+          <Ionicons
+            name="time-outline"
+            size={24}
+            color="#ccc"
+          />
+        </View>
+        <FlatList
+          data={filteredTransactions}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={renderItem}
+          contentContainerStyle={styles.listContent}
+          ListEmptyComponent={() => <Text style={styles.emptyText}>Tidak ada transaksi pada tanggal ini.</Text>}
         />
       </View>
-
-      <FlatList
-        data={filteredTransactions}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={renderItem}
-        contentContainerStyle={styles.listContent}
-        ListEmptyComponent={() => <Text style={styles.emptyText}>Tidak ada transaksi pada tanggal ini.</Text>}
-      />
     </View>
   );
 };
@@ -97,13 +141,26 @@ const HistoryScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1a1a2e',
+    position: 'relative', // Penting untuk penempatan gradient
+    backgroundColor: 'transparent', // Ubah menjadi transparan
+  },
+  gradientContainer: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 0, // Pastikan gradient di paling bawah
+  },
+  contentContainer: {
+    // Wrapper untuk semua konten di atas gradient
+    flex: 1,
+    backgroundColor: 'transparent',
+    zIndex: 1, // Pastikan konten di atas gradient
+    paddingTop: 20, // Sesuaikan padding sesuai kebutuhan UI
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#1a1a2e',
+    backgroundColor: 'transparent', // Ubah menjadi transparan
+    position: 'relative',
   },
   historyHeader: {
     flexDirection: 'row',
@@ -120,7 +177,7 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingHorizontal: 20,
-    paddingBottom: 100, // Increased padding to prevent overlap with the bottom tab bar
+    paddingBottom: 100,
   },
   emptyText: {
     textAlign: 'center',

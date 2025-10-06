@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, Dimensions } from 'react-native';
 import { PieChart } from 'react-native-chart-kit';
 import { getSpendingData } from '../services/database'; // Assume this function exists
 
-const SpendingScreen = () => {
+const ChartScreen = () => {
   const [chartData, setChartData] = useState([]);
   const [transactions, setTransactions] = useState([]);
   const [totalSpending, setTotalSpending] = useState(0);
@@ -117,4 +117,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default SpendingScreen;
+export default ChartScreen;
