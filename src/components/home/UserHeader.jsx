@@ -65,7 +65,7 @@ const styles = StyleSheet.create({
   userInfo: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#040824F2',
+    backgroundColor: 'rgba(255,255,255,0.1)',
     borderRadius: 30,
     paddingVertical: 8,
     paddingHorizontal: 15,

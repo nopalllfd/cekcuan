@@ -1,11 +1,24 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Dimensions } from 'react-native';
+
+const { width } = Dimensions.get('window');
 
 export const styles = StyleSheet.create({
-  // UTAMA
   flexContainer: { flex: 1, backgroundColor: '#010923' },
   gradientContainer: { ...StyleSheet.absoluteFillObject },
-  container: { paddingBottom: 120, paddingTop: 60, alignItems: 'center', gap: 25 },
-  header: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', paddingHorizontal: 20, marginBottom: 10, gap: 10 },
+  container: {
+    paddingBottom: 120,
+    paddingTop: 60,
+    // alignItems: 'center', // <-- 1. HAPUS BARIS INI
+    gap: 25,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start', // Ini akan tetap membuat header di kiri
+    paddingHorizontal: 20,
+    marginBottom: 10,
+    gap: 10,
+  },
   title: { fontSize: 24, fontWeight: 'bold', color: '#fff' },
 
   // STYLE KARTU
@@ -14,6 +27,7 @@ export const styles = StyleSheet.create({
     borderRadius: 20,
     overflow: 'hidden',
     padding: 20,
+    alignSelf: 'center', // <-- 2. TAMBAHKAN BARIS INI
   },
 
   // KONTEN KARTU
@@ -48,13 +62,10 @@ export const styles = StyleSheet.create({
     borderRadius: 15,
     marginTop: -15,
     zIndex: -1,
-  },
-  updateIncomeButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
+    alignSelf: 'center', // <-- 2. TAMBAHKAN BARIS INI JUGA
   },
 
+  // ... sisa style Anda tidak perlu diubah ...
   // KARTU BUDGET & SAVINGS (WARNA SOLID)
   solidCardBackground: {
     backgroundColor: '#1E1E3F',
@@ -102,7 +113,7 @@ export const styles = StyleSheet.create({
     padding: 10,
   },
   savingCard: {
-    width: 200,
+    width: width * 0.6, // Menggunakan lebar dinamis lebih baik
     height: 120,
     borderRadius: 20,
     padding: 15,
