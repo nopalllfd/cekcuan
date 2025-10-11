@@ -180,7 +180,7 @@ const HomeScreen = ({ navigation }) => {
           isVisible={isTransactionModalVisible}
           onClose={() => setTransactionModalVisible(false)}
           onSave={handleSaveTransaction}
-          categories={categories}
+          categories={categories.filter((cat) => cat.name !== 'Pemasukan' && cat.name !== 'Alokasi')}
           fetchData={fetchData}
         />
         <AddBudgetModal

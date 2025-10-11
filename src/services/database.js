@@ -1,7 +1,5 @@
 import * as SQLite from 'expo-sqlite';
 
-// --- BAGIAN YANG HILANG ---
-// Variabel untuk menyimpan koneksi database
 let db;
 
 // Fungsi untuk membuat atau membuka koneksi database
@@ -11,8 +9,8 @@ const initializeDatabase = async () => {
   }
   return db;
 };
-// --------------------------
 
+// --- Inisialisasi Database dan Tabel ---
 export const initDB = async () => {
   try {
     const database = await initializeDatabase();
@@ -35,7 +33,7 @@ export const initDB = async () => {
     `);
 
     await database.runAsync(
-      `INSERT OR IGNORE INTO categories (name, icon) VALUES (?, ?), (?, ?), (?, ?), (?, ?), (?, ?);`,
+      `INSERT OR IGNORE INTO categories (name, icon) VALUES (?, ?), (?, ?), (?, ?), (?, ?), (?, ?), (?, ?);`,
       'Pemasukan',
       'cash',
       'Pengeluaran',
@@ -45,7 +43,8 @@ export const initDB = async () => {
       'Belanja',
       'shopping-outline',
       'Tabungan',
-      'piggy-bank'
+      'piggy-bank',
+      'Alokasi'
     );
   } catch (error) {
     console.error('Gagal inisialisasi DB:', error);
@@ -64,7 +63,7 @@ export const getMonthlyBudget = async () => {
   const database = await initializeDatabase();
   const now = new Date();
   const result = await database.getFirstAsync(`SELECT amount FROM monthly_budgets WHERE month = ? AND year = ?;`, now.getMonth() + 1, now.getFullYear());
-  return result ? result.amount : 0;
+  return result?.amount || 0;
 };
 
 // --- FUNGSI PERHITUNGAN TRANSAKSI ---
@@ -89,43 +88,37 @@ export const getMonthlySpending = async () => {
   return result?.total || 0;
 };
 
-// Tambahkan fungsi ini di dalam file database.js Anda
+export const getDailySpending = async () => {
+  const database = await initializeDatabase();
+  const now = new Date();
+  const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+  const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59).toISOString();
+  const result = await database.getFirstAsync(`SELECT SUM(amount) AS total FROM transactions WHERE type = 'pengeluaran' AND date BETWEEN ? AND ?;`, startOfDay, endOfDay);
+  return result?.total || 0;
+};
 
 export const getMonthlySavings = async () => {
-  try {
-    const database = await initializeDatabase();
-    const { startOfMonth, endOfMonth } = getMonthRange(); // Gunakan fungsi getMonthRange yang sudah ada
-
-    // Query ini menjumlahkan semua transaksi yang kategorinya 'Tabungan'
-    const result = await database.getFirstAsync(
-      `
-      SELECT SUM(t.amount) AS total 
-      FROM transactions t
-      JOIN categories c ON t.category_id = c.id
-      WHERE c.name = 'Tabungan' AND t.date BETWEEN ? AND ?;
-    `,
-      startOfMonth,
-      endOfMonth
-    );
-
-    return result?.total || 0;
-  } catch (error) {
-    console.error('Gagal mengambil total tabungan:', error);
-    throw error;
-  }
+  const database = await initializeDatabase();
+  const { startOfMonth, endOfMonth } = getMonthRange();
+  const result = await database.getFirstAsync(
+    `SELECT SUM(t.amount) AS total 
+       FROM transactions t
+       JOIN categories c ON t.category_id = c.id
+       WHERE c.name = 'Tabungan' AND t.date BETWEEN ? AND ?;`,
+    startOfMonth,
+    endOfMonth
+  );
+  return result?.total || 0;
 };
 
 export const getCurrentBalance = async () => {
-  try {
-    const database = await initializeDatabase();
-    const result = await database.getFirstAsync(`
-        SELECT SUM(CASE WHEN type = 'pemasukan' THEN amount ELSE -amount END) AS balance FROM transactions;
-      `);
-    return result.balance || 0;
-  } catch (error) {
-    console.error('Gagal mengambil saldo:', error);
-    throw error;
-  }
+  const database = await initializeDatabase();
+  const result = await database.getFirstAsync(`
+      SELECT SUM(CASE WHEN type = 'pemasukan' THEN amount ELSE -amount END) 
+      AS balance FROM transactions 
+      WHERE type != 'alokasi'; 
+    `);
+  return result?.balance || 0;
 };
 
 // --- FUNGSI MANAJEMEN TRANSAKSI & KATEGORI ---
@@ -155,19 +148,74 @@ export const addCategory = async (name, icon) => {
 };
 
 // Tambahkan fungsi ini di dalam file database.js
-
-export const getDailySpending = async () => {
+export const addSaving = async (name, target, bgColor) => {
   try {
     const database = await initializeDatabase();
-    const now = new Date();
-    // Mengatur waktu ke awal dan akhir HARI INI
-    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
-    const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59).toISOString();
-
-    const result = await database.getFirstAsync(`SELECT SUM(amount) AS total FROM transactions WHERE type = 'pengeluaran' AND date BETWEEN ? AND ?;`, startOfDay, endOfDay);
-    return result?.total || 0;
+    await database.runAsync(`INSERT INTO savings (name, target, bgColor, current) VALUES (?, ?, ?, 0);`, name, target, bgColor);
   } catch (error) {
-    console.error('Gagal mengambil pengeluaran harian:', error);
+    console.error('Gagal menambah target tabungan:', error);
+    throw error;
+  }
+};
+
+export const getSaving = async () => {
+  try {
+    const database = await initializeDatabase();
+    const data = await database.getAllAsync(`SELECT * FROM savings`);
+    return data;
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const migrateSavingsTable = async () => {
+  const database = await initializeDatabase();
+  await database.execAsync(`ALTER TABLE savings ADD COLUMN bgColor TEXT;`);
+};
+
+export const kurangiIncome = async (amount) => {
+  const database = await initializeDatabase();
+  // Misal income disimpan di monthly_budgets
+  const now = new Date();
+  await database.runAsync(`UPDATE monthly_budgets SET amount = amount - ? WHERE month = ? AND year = ?;`, amount, now.getMonth() + 1, now.getFullYear());
+};
+
+// Tambahkan fungsi ini di dalam file database.js
+
+// Di dalam file database.js
+
+export const addFundsToSaving = async (savingId, amountToAdd, savingName, source) => {
+  try {
+    const database = await initializeDatabase();
+
+    // Logika untuk menentukan tipe dan kategori transaksi
+    let transactionType = 'pengeluaran'; // Defaultnya adalah pengeluaran
+    let categoryId = 5; // ID Kategori "Tabungan"
+
+    // Jika sumbernya dari luar, anggap sebagai pemasukan khusus untuk tabungan
+    if (source === 'luar') {
+      transactionType = 'pemasukan';
+      // Kita tetap gunakan kategori 'Tabungan' agar mudah difilter
+    }
+
+    // 1. Catat transaksi (bisa pemasukan atau pengeluaran)
+    await addTransaction(amountToAdd, `Menabung untuk ${savingName}`, transactionType, categoryId);
+
+    // 2. Update progres di tabel 'savings' (tetap sama)
+    await database.runAsync(`UPDATE savings SET current = current + ? WHERE id = ?;`, amountToAdd, savingId);
+  } catch (error) {
+    console.error('Gagal menambah dana ke tabungan:', error);
+    throw error;
+  }
+};
+
+export const deleteSaving = async (savingId) => {
+  try {
+    const database = await initializeDatabase();
+    await database.runAsync(`DELETE FROM savings WHERE id = ?;`, savingId);
+    // Catatan: Ini hanya menghapus targetnya, tidak menghapus riwayat transaksinya.
+  } catch (error) {
+    console.error('Gagal menghapus target tabungan:', error);
     throw error;
   }
 };

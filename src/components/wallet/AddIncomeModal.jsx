@@ -4,7 +4,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { styles } from './styles'; // Pastikan path styles Anda benar
 
 const AddIncomeModal = ({ isVisible, onClose, onSave, navigation }) => {
-  // State 'amount' akan menyimpan angka murni (string tanpa titik), cth: '5000000'
   const [amount, setAmount] = useState('');
 
   // --- PERUBAHAN 1 ---
@@ -66,14 +65,7 @@ const AddIncomeModal = ({ isVisible, onClose, onSave, navigation }) => {
             onChangeText={handleAmountChange} // Simpan nilai yang bersih
             autoFocus={true}
           />
-          <View style={styles.historyButton}>
-            <TouchableOpacity
-              style={styles.historyLink}
-              onPress={() => navigation.navigate('Riwayat')}
-            >
-              <Text style={styles.historyText}>Lihat History ›</Text>
-            </TouchableOpacity>
-          </View>
+
           <TouchableOpacity
             style={styles.modalSaveButton}
             onPress={handleSave}

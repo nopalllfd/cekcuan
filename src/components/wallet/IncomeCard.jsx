@@ -14,14 +14,7 @@ const IncomeCard = ({ funds, navigation }) => {
     >
       <View style={styles.cardHeader}>
         {/* Judul diubah agar lebih jelas */}
-        <Text style={styles.cardTitle}>Dana Tersedia (Belum Dialokasikan)</Text>
-        <TouchableOpacity onPress={() => setIsVisible(!isVisible)}>
-          <Feather
-            name={isVisible ? 'eye' : 'eye-off'}
-            size={22}
-            color="rgba(255, 255, 255, 0.8)"
-          />
-        </TouchableOpacity>
+        <Text style={styles.cardTitle}>Jumlah Pemasukkan</Text>
       </View>
       <Text style={styles.amountText}>{isVisible ? `Rp ${(funds || 0).toLocaleString('id-ID')}` : 'Rp ••••••••'}</Text>
       <View style={styles.incomeCardBottomRow}>
@@ -43,13 +36,18 @@ const IncomeCard = ({ funds, navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  card: { borderRadius: 20, padding: 20, marginBottom: 5 },
+  card: {
+    padding: 20,
+    marginBottom: 15,
+    borderTopRightRadius: 12,
+    borderTopLeftRadius: 12,
+  },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   cardTitle: { color: 'rgba(255, 255, 255, 0.9)', fontSize: 16 },
   amountText: { color: '#fff', fontSize: 32, fontWeight: 'bold', marginTop: 8, letterSpacing: 1 },
-  incomeCardBottomRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 20 },
-  historyLink: { flexDirection: 'row', alignItems: 'center', gap: 2 },
-  historyText: { color: 'rgba(255, 255, 255, 0.8)', fontSize: 14, fontWeight: '500' },
+  incomeCardBottomRow: { flexDirection: 'row', alignItems: 'center', marginTop: 20 },
+  historyLink: { flexDirection: 'row', alignItems: 'center' },
+  historyText: { color: 'rgba(255, 255, 255, 0.8)', fontSize: 16, fontWeight: '500' },
 });
 
 export default React.memo(IncomeCard);

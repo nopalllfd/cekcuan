@@ -50,7 +50,7 @@ const AddBudgetModal = ({ isVisible, onClose, onSave }) => {
       >
         <View style={styles.modalContainer}>
           <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Update Jatah Bulanan</Text>
+            <Text style={styles.modalTitle}>Tambah Jatah Bulanan</Text>
             <TouchableOpacity onPress={onClose}>
               <Ionicons
                 name="close-circle"

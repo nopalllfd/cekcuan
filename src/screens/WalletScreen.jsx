@@ -2,31 +2,36 @@ import React, { useState, useCallback } from 'react';
 import { View, Text, ScrollView, ActivityIndicator, Alert, TouchableOpacity, StyleSheet } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
-import { addTransaction, addMonthlyBudget, getMonthlyBudget, getMonthlyIncome, getMonthlySpending, getMonthlySavings } from '../services/database';
-
+import { addTransaction, addMonthlyBudget, getMonthlyBudget, getMonthlyIncome, getMonthlySpending, getSaving, addSaving, migrateSavingsTable, addFundsToSaving, deleteSaving } from '../services/database';
 import AddIncomeModal from '../components/wallet/AddIncomeModal';
 import AddBudgetModal from '../components/wallet/AddBudgetModal';
+import AddSavingModal from '../components/wallet/AddSavingModal';
 import IncomeCard from '../components/wallet/IncomeCard';
 import BudgetCard from '../components/wallet/BudgetCard';
 import SavingsSection from '../components/wallet/SavingSection';
 import GradientBackground from '../components/wallet/GradientBackground';
+import SavingDetailModal from '../components/wallet/SavingDetailModal';
 
 const WalletScreen = ({ navigation }) => {
   const [budget, setBudget] = useState(0);
   const [income, setIncome] = useState(0);
   const [spending, setSpending] = useState(0);
-  const [savings, setSavings] = useState(0);
+  const [savings, setSavings] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isIncomeModalVisible, setIncomeModalVisible] = useState(false);
   const [isBudgetModalVisible, setBudgetModalVisible] = useState(false);
+  const [isSavingModalVisible, setSavingModalVisible] = useState(false);
+  const [isDetailModalVisible, setDetailModalVisible] = useState(false);
+  const [selectedSaving, setSelectedSaving] = useState(null);
 
   const loadFinancialData = async () => {
     try {
-      const [fetchedBudget, fetchedIncome, fetchedSpending, fetchedSavings] = await Promise.all([getMonthlyBudget(), getMonthlyIncome(), getMonthlySpending(), getMonthlySavings()]);
+      const [fetchedBudget, fetchedIncome, fetchedSpending, fetchedSavingsData] = await Promise.all([getMonthlyBudget(), getMonthlyIncome(), getMonthlySpending(), getSaving()]);
+
       setBudget(fetchedBudget ?? 0);
       setIncome(fetchedIncome ?? 0);
       setSpending(fetchedSpending ?? 0);
-      setSavings(fetchedSavings ?? 0);
+      setSavings(fetchedSavingsData ?? []);
     } catch (error) {
       console.error('Gagal memuat data:', error);
       Alert.alert('Error', 'Gagal memuat data.');
@@ -44,10 +49,11 @@ const WalletScreen = ({ navigation }) => {
 
   const handleSaveIncome = async (newIncomeAmount) => {
     try {
+      console.log('Savings:', savings);
       setIsLoading(true);
       await addTransaction(newIncomeAmount, 'Pemasukan', 'pemasukan', 1);
-      await loadFinancialData();
       Alert.alert('Berhasil', 'Pemasukan baru berhasil ditambahkan.');
+      loadFinancialData();
     } catch (error) {
       Alert.alert('Error', 'Gagal menyimpan pemasukan.');
     } finally {
@@ -56,7 +62,11 @@ const WalletScreen = ({ navigation }) => {
     }
   };
 
-  // --- PERUBAHAN UTAMA DI FUNGSI INI ---
+  const handleSelectSaving = (savingItem) => {
+    setSelectedSaving(savingItem);
+    setDetailModalVisible(true);
+  };
+
   const handleSaveBudget = async (amountToAdd) => {
     const availableFunds = income - budget - savings;
 
@@ -81,30 +91,68 @@ const WalletScreen = ({ navigation }) => {
       setIsLoading(false);
     }
   };
+  const handleSaveSaving = async (name, target, bgColor) => {
+    try {
+      await addSaving(name, target, bgColor);
+      Alert.alert('Berhasil', 'Target tabungan baru berhasil dibuat.');
+      await loadFinancialData();
+      console.log('Savings:', savings);
+    } catch (error) {
+      Alert.alert('Error', 'Gagal membuat target tabungan.');
+    }
+  };
 
-  const availableFunds = income - budget - savings;
+  const handleDeleteSaving = async (savingId) => {
+    try {
+      await deleteSaving(savingId);
+      Alert.alert('Berhasil', 'Target tabungan telah dihapus.');
+      await loadFinancialData(); // Muat ulang data untuk update UI
+    } catch (error) {
+      Alert.alert('Error', 'Gagal menghapus target tabungan.');
+    }
+  };
+
+  const handleAddToSaving = async (savingId, amountToAdd, savingName, source) => {
+    try {
+      // Validasi hanya dilakukan jika sumber dana dari pemasukan internal
+      if (source === 'pemasukan') {
+        const availableFunds = income - budget - savings;
+        if (amountToAdd > availableFunds) {
+          Alert.alert('Dana Tidak Cukup', 'Jumlah yang ingin ditabung melebihi dana tersedia.');
+          return; // Hentikan proses jika dana tidak cukup
+        }
+      }
+
+      // Panggil fungsi database dengan argumen 'source'
+      await addFundsToSaving(savingId, amountToAdd, savingName, source);
+
+      Alert.alert('Berhasil', 'Dana berhasil ditambahkan ke tabungan.');
+      await loadFinancialData(); // Muat ulang semua data
+    } catch (error) {
+      Alert.alert('Error', 'Gagal menambah dana ke tabungan.');
+    }
+  };
+
+  const availableFunds = income - budget - savings.reduce((sum, s) => sum + s.current, 0);
 
   if (isLoading) {
-    /* ... kode loading ... */
+    return (
+      <View style={styles.flexContainer}>
+        <GradientBackground />
+        <ActivityIndicator
+          size="large"
+          color="#fff"
+          style={{ flex: 1 }}
+        />
+      </View>
+    );
   }
 
   return (
     <View style={styles.flexContainer}>
       <GradientBackground />
       <ScrollView contentContainerStyle={styles.container}>
-        <View style={styles.header}>
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}
-            style={{ padding: 5, marginRight: 5 }}
-          >
-            <Ionicons
-              name="arrow-back"
-              size={28}
-              color="#fff"
-            />
-          </TouchableOpacity>
-          <Text style={styles.title}>Alokasi Dana</Text>
-        </View>
+        <View style={styles.header}></View>
 
         <IncomeCard
           funds={availableFunds}
@@ -126,7 +174,13 @@ const WalletScreen = ({ navigation }) => {
           spending={spending}
           onUpdate={() => setBudgetModalVisible(true)}
         />
-        <SavingsSection />
+
+        <SavingsSection
+          savings={[...savings].reverse()}
+          onAddSaving={() => setSavingModalVisible(true)}
+          navigation={navigation}
+          onSelect={handleSelectSaving}
+        />
       </ScrollView>
 
       <AddIncomeModal
@@ -139,14 +193,26 @@ const WalletScreen = ({ navigation }) => {
         onClose={() => setBudgetModalVisible(false)}
         onSave={handleSaveBudget}
       />
+      <AddSavingModal
+        isVisible={isSavingModalVisible}
+        onClose={() => setSavingModalVisible(false)}
+        onSave={handleSaveSaving}
+      />
+
+      <SavingDetailModal
+        isVisible={isDetailModalVisible}
+        onClose={() => setDetailModalVisible(false)}
+        onSave={handleAddToSaving}
+        onDelete={handleDeleteSaving}
+        savingItem={selectedSaving}
+      />
     </View>
   );
 };
 
-// ... styles ...
 const styles = StyleSheet.create({
   flexContainer: { flex: 1, backgroundColor: '#010923' },
-  container: { padding: 20, paddingBottom: 100 },
+  container: { padding: 20, paddingBottom: 100, marginTop: 24 },
   header: { flexDirection: 'row', alignItems: 'center', marginBottom: 20 },
   title: { color: '#fff', fontSize: 24, fontWeight: 'bold' },
   updateIncomeButton: {
@@ -158,9 +224,11 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     gap: 8,
     marginTop: -15,
+    borderTopLeftRadius: 0,
+    borderTopRightRadius: 0,
     zIndex: -10,
     alignSelf: 'center',
-    width: '90%',
+    width: '100%',
   },
   updateIncomeButtonText: { color: '#fff', fontSize: 16, fontWeight: '600', lineHeight: 22 },
 });

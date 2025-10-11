@@ -17,17 +17,12 @@ const Stack = createStackNavigator();
 const AppNavigator = () => {
   return (
     <Stack.Navigator>
-      {/* The Tab Navigator is placed inside the Stack Navigator.
-        This allows the tabs to be visible on all screens,
-        and you can still navigate to screens that are not part of the tabs.
-      */}
       <Stack.Screen
         name="MainTabs"
         component={MainTabs}
         options={{ headerShown: false }}
       />
 
-      {/* Screen for notifications, accessible from the Home screen */}
       <Stack.Screen
         name="NotificationScreen"
         component={NotificationScreen}

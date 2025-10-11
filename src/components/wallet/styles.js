@@ -23,10 +23,13 @@ export const styles = StyleSheet.create({
 
   // STYLE KARTU
   card: {
-    width: '90%',
+    width: '100%',
     borderRadius: 20,
     overflow: 'hidden',
     padding: 20,
+    borderWidth: 0.8,
+    borderColor: '#fff',
+    backgroundColor: 'rgba(124, 124, 125, 0.24)',
     alignSelf: 'center', // <-- 2. TAMBAHKAN BARIS INI
   },
 
@@ -73,7 +76,7 @@ export const styles = StyleSheet.create({
   budgetCardActions: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 20,
+    marginTop: 40,
     alignItems: 'center',
   },
   updateButton: {
@@ -85,6 +88,8 @@ export const styles = StyleSheet.create({
   // SEKSI TABUNGAN
   savingsContainer: {
     padding: 0,
+    marginTop: 20,
+    marginBottom: 40,
   },
   sectionHeader: {
     paddingHorizontal: 20,
@@ -118,12 +123,13 @@ export const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 15,
     marginHorizontal: 10,
+    alignItems: 'center',
     justifyContent: 'space-between',
   },
-  savingCardTitle: { color: '#fff', fontWeight: 'bold' },
+  savingCardTitle: { marginStart: -6, color: '#fff', fontWeight: 'bold' },
   savingCardProgressText: { color: '#fff', fontSize: 28, fontWeight: 'bold' },
   savingCardDetail: { flexDirection: 'row', alignItems: 'center', gap: 5 },
-  savingCardDetailText: { color: 'rgba(255,255,255,0.8)', fontSize: 12 },
+  savingCardDetailText: { marginStart: 6, color: 'rgba(255,255,255,0.8)', fontSize: 12 },
   viewAllButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, alignSelf: 'center', marginTop: 20, paddingBottom: 20 },
   viewAllText: { color: '#fff', fontSize: 16, fontWeight: '600' },
 
@@ -136,9 +142,11 @@ export const styles = StyleSheet.create({
   },
   modalContainer: {
     width: '90%',
-    backgroundColor: '#1E1E3F',
+    backgroundColor: 'rgba(4, 8, 36, 0.95)',
     borderRadius: 20,
     padding: 25,
+    borderWidth: 0.8,
+    borderColor: '#fff',
   },
   modalHeader: {
     flexDirection: 'row',
@@ -155,6 +163,7 @@ export const styles = StyleSheet.create({
     color: '#d1d5db',
     fontSize: 14,
     marginBottom: 8,
+    marginBottom: 20,
   },
   modalInput: {
     backgroundColor: '#374151',
@@ -164,13 +173,14 @@ export const styles = StyleSheet.create({
     paddingVertical: 12,
     fontSize: 16,
     marginBottom: 10,
+    marginBottom: 20,
   },
   historyButton: {
     alignItems: 'flex-end',
     marginBottom: 20,
   },
   modalSaveButton: {
-    backgroundColor: '#5E72E4',
+    backgroundColor: 'rgba(139, 139, 139, 0.32)',
     padding: 15,
     borderRadius: 10,
     alignItems: 'center',
