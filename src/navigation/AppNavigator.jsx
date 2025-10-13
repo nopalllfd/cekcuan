@@ -8,6 +8,7 @@ import HomeScreen from '../screens/HomeScreen';
 import ChartScreen from '../screens/ChartScreen';
 import HistoryScreen from '../screens/HistoryScreen';
 import WalletScreen from '../screens/WalletScreen';
+import IncomeHistoryScreen from '../screens/IncomeHistoryScreen';
 import NotificationScreen from '../screens/NotificationScreen';
 
 const Tab = createBottomTabNavigator();
@@ -20,6 +21,11 @@ const AppNavigator = () => {
       <Stack.Screen
         name="MainTabs"
         component={MainTabs}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="IncomeHistoryScreen"
+        component={IncomeHistoryScreen}
         options={{ headerShown: false }}
       />
 
@@ -108,7 +114,7 @@ const MainTabs = ({ fetchData }) => {
           title: 'Chart',
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons
-              name="credit-card" // Using a more appropriate icon for a spending tab
+              name="wave" // Using a more appropriate icon for a spending tab
               color={color}
               size={size}
             />
@@ -121,7 +127,27 @@ const MainTabs = ({ fetchData }) => {
           title: 'Wallet',
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons
-              name="account"
+              name="wallet"
+              color={color}
+              size={size}
+            />
+          ),
+        }}
+      >
+        {(props) => (
+          <WalletScreen
+            {...props}
+            fetchData={fetchData}
+          />
+        )}
+      </Tab.Screen>
+      <Tab.Screen
+        name="Setting"
+        options={{
+          title: 'Setting',
+          tabBarIcon: ({ color, size }) => (
+            <MaterialCommunityIcons
+              name="cog"
               color={color}
               size={size}
             />

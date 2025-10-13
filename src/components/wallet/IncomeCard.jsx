@@ -21,7 +21,7 @@ const IncomeCard = ({ funds, navigation }) => {
         <View />
         <TouchableOpacity
           style={styles.historyLink}
-          onPress={() => navigation.navigate('Riwayat')}
+          onPress={() => navigation.navigate('IncomeHistoryScreen')}
         >
           <Text style={styles.historyText}>Lihat Riwayat</Text>
           <Ionicons

@@ -36,7 +36,6 @@ const TransactionItem = ({ transaction }) => {
           <MaterialCommunityIcons
             name={iconName}
             size={24}
-            // Warna ikon diubah agar dinamis, ini bukan perubahan style
             color={amountColor}
           />
         </View>

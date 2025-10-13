@@ -23,7 +23,7 @@ const BudgetCard = ({ budget, spending, onUpdate }) => {
           <Text style={styles.amountText}>{isOverspent ? `- Rp ${Math.abs(remainingBudget).toLocaleString('id-ID')}` : `Rp ${remainingBudget.toLocaleString('id-ID')}`}</Text>
         </View>
         <View style={styles.count}>
-          <Text style={styles.countContent}>(Sisa jatah Bulanan anda untuk {daysLeftToEndOfMonth} lagi)</Text>
+          <Text style={styles.countContent}>(Sisa jatah Bulanan anda untuk {daysLeftToEndOfMonth} hari lagi)</Text>
         </View>
       </View>
       <View style={styles.buttonHeaderBackground}>

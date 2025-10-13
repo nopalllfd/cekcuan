@@ -189,7 +189,7 @@ export const addFundsToSaving = async (savingId, amountToAdd, savingName, source
     const database = await initializeDatabase();
 
     // Logika untuk menentukan tipe dan kategori transaksi
-    let transactionType = 'pengeluaran'; // Defaultnya adalah pengeluaran
+    let transactionType = 'alokasi'; // Defaultnya adalah pengeluaran
     let categoryId = 5; // ID Kategori "Tabungan"
 
     // Jika sumbernya dari luar, anggap sebagai pemasukan khusus untuk tabungan
@@ -199,9 +199,9 @@ export const addFundsToSaving = async (savingId, amountToAdd, savingName, source
     }
 
     // 1. Catat transaksi (bisa pemasukan atau pengeluaran)
-    await addTransaction(amountToAdd, `Menabung untuk ${savingName}`, transactionType, categoryId);
+    await addTransaction(amountToAdd, `Menabung ke ${savingName} dari ${source}`, transactionType, categoryId);
 
-    // 2. Update progres di tabel 'savings' (tetap sama)
+    // 2. Update progres di tabel 'savings' ( sama)
     await database.runAsync(`UPDATE savings SET current = current + ? WHERE id = ?;`, amountToAdd, savingId);
   } catch (error) {
     console.error('Gagal menambah dana ke tabungan:', error);
