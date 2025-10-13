@@ -198,7 +198,7 @@ const WalletScreen = ({ navigation }) => {
           savings={[...savings].reverse()}
           onAddSaving={() => setSavingModalVisible(true)}
           navigation={navigation}
-          onSelectSaving={handleSelectSaving}
+          onSelect={handleSelectSaving}
         />
       </ScrollView>
 
