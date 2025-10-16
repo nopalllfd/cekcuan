@@ -1,15 +1,16 @@
-import React from 'react';
-import { NavigationContainer } from '@react-navigation/native';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { createStackNavigator } from '@react-navigation/stack';
-import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
+import React from "react";
+import { NavigationContainer } from "@react-navigation/native";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { createStackNavigator } from "@react-navigation/stack";
+import { MaterialCommunityIcons, Ionicons } from "@expo/vector-icons";
 
-import HomeScreen from '../screens/HomeScreen';
-import ChartScreen from '../screens/ChartScreen';
-import HistoryScreen from '../screens/HistoryScreen';
-import WalletScreen from '../screens/WalletScreen';
-import IncomeHistoryScreen from '../screens/IncomeHistoryScreen';
-import NotificationScreen from '../screens/NotificationScreen';
+import HomeScreen from "../screens/HomeScreen";
+import ChartScreen from "../screens/ChartScreen";
+import HistoryScreen from "../screens/HistoryScreen";
+import WalletScreen from "../screens/WalletScreen";
+import IncomeHistoryScreen from "../screens/IncomeHistoryScreen";
+import NotificationScreen from "../screens/NotificationScreen";
+import SettingScreen from "../screens/SettingScreen";
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -33,9 +34,9 @@ const AppNavigator = () => {
         name="NotificationScreen"
         component={NotificationScreen}
         options={{
-          headerTitle: 'Notifikasi',
-          headerStyle: { backgroundColor: '#1a1a2e' },
-          headerTintColor: '#fff',
+          headerTitle: "Notifikasi",
+          headerStyle: { backgroundColor: "#1a1a2e" },
+          headerTintColor: "#fff",
         }}
       />
     </Stack.Navigator>
@@ -49,16 +50,16 @@ const MainTabs = ({ fetchData }) => {
       initialRouteName="Home"
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: 'rgba(133, 149, 198, 1)',
-        tabBarInactiveTintColor: '#fff',
+        tabBarActiveTintColor: "rgba(133, 149, 198, 1)",
+        tabBarInactiveTintColor: "#fff",
         tabBarStyle: {
-          backgroundColor: '#010923',
+          backgroundColor: "#010923",
           borderTopWidth: 0,
           elevation: 0,
           paddingBottom: 5,
           height: 60,
           borderRadius: 10,
-          position: 'absolute',
+          position: "absolute",
           bottom: 0,
           left: 20,
           right: 20,
@@ -67,14 +68,14 @@ const MainTabs = ({ fetchData }) => {
         },
         tabBarLabelStyle: {
           fontSize: 12,
-          fontWeight: 'bold',
+          fontWeight: "bold",
           marginTop: -5,
         },
         tabBarItemStyle: {
           paddingTop: 5,
         },
         sceneContainerStyle: {
-          backgroundColor: '#1a1a2e',
+          backgroundColor: "#1a1a2e",
         },
       }}
     >
@@ -82,13 +83,9 @@ const MainTabs = ({ fetchData }) => {
         name="Home"
         component={HomeScreen}
         options={{
-          title: 'Home',
+          title: "Home",
           tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons
-              name="home"
-              color={color}
-              size={size}
-            />
+            <MaterialCommunityIcons name="home" color={color} size={size} />
           ),
         }}
         initialParams={{ fetchData }} // Pass fetchData to HomeScreen
@@ -97,13 +94,9 @@ const MainTabs = ({ fetchData }) => {
         name="Riwayat"
         component={HistoryScreen}
         options={{
-          title: 'Riwayat',
+          title: "Riwayat",
           tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons
-              name="history"
-              color={color}
-              size={size}
-            />
+            <MaterialCommunityIcons name="history" color={color} size={size} />
           ),
         }}
       />
@@ -111,7 +104,7 @@ const MainTabs = ({ fetchData }) => {
         name="Chart"
         component={ChartScreen} // This is the correct way
         options={{
-          title: 'Chart',
+          title: "Chart",
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons
               name="wave" // Using a more appropriate icon for a spending tab
@@ -124,43 +117,24 @@ const MainTabs = ({ fetchData }) => {
       <Tab.Screen
         name="Wallet"
         options={{
-          title: 'Wallet',
+          title: "Wallet",
           tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons
-              name="wallet"
-              color={color}
-              size={size}
-            />
+            <MaterialCommunityIcons name="wallet" color={color} size={size} />
           ),
         }}
       >
-        {(props) => (
-          <WalletScreen
-            {...props}
-            fetchData={fetchData}
-          />
-        )}
+        {(props) => <WalletScreen {...props} fetchData={fetchData} />}
       </Tab.Screen>
       <Tab.Screen
         name="Setting"
+        component={SettingScreen}
         options={{
-          title: 'Setting',
+          title: "Setting",
           tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons
-              name="cog"
-              color={color}
-              size={size}
-            />
+            <MaterialCommunityIcons name="cog" color={color} size={size} />
           ),
         }}
-      >
-        {(props) => (
-          <WalletScreen
-            {...props}
-            fetchData={fetchData}
-          />
-        )}
-      </Tab.Screen>
+      ></Tab.Screen>
     </Tab.Navigator>
   );
 };
